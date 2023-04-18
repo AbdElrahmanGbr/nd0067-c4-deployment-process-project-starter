@@ -4,8 +4,8 @@
 
 export const environment = {
   production: false,
-  appName: 'Udagram-Udacity-Nanodegree',
-  apiHost: 'http://localhost:8080/api/v0',
+  appName: 'udagram-api',
+  apiHost: 'http://udagramapi-env.eba-wuibmf7u.us-east-1.elasticbeanstalk.com/api/v0',
 };
 
 /*

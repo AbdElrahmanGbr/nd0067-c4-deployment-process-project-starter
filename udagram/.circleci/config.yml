@@ -26,7 +26,7 @@ jobs:
           profile-name: AWS_PROFILE
       - run:
           name: Deploy Frontend
-          command: aws s3 cp --recursive  ./www s3://gbr-udagram-udacity/
+          command: aws s3 cp --recursive  ./www s3://gbr-udagram-fullstack/
   server:
     working_directory: ~/app/udagram/udagram-api
     executor: node/default
