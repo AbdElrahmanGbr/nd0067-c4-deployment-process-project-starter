@@ -1,6 +1,6 @@
 import * as dotenv from "dotenv";
-import cors from 'cors';
-import express from "express";
+import cors from "cors";
+import express from 'express';
 import { sequelize } from "./sequelize";
 
 import { IndexRouter } from "./controllers/v0/index.router";
@@ -31,7 +31,7 @@ import { V0_FEED_MODELS, V0_USER_MODELS } from "./controllers/v0/model.index";
 
   // app.use(cors());
   // We set the CORS origin to * so that we don't need to
-  // worry about the complexities of CORS. 
+  // worry about the complexities of CORS.
   app.use(cors({
     "allowedHeaders": [
       'Origin', 'X-Requested-With',
@@ -55,7 +55,7 @@ import { V0_FEED_MODELS, V0_USER_MODELS } from "./controllers/v0/model.index";
   // Start the Server
   app.listen(port, () => {
     console.log(`Backend server is listening on port ${port}....`);
-    console.log(`Frontent server running`);
+    console.log(`Frontent server running ${process.env.URL}`);
     console.log(`press CTRL+C to stop server`);
   });
 })();
