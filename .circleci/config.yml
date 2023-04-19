@@ -1,61 +1,86 @@
 version: 2.1
+# Orbs: This section defines reusable packages that contain pre-built, versioned CircleCI configurations for common use cases, such as installing Node.js or the AWS CLI
 orbs:
   node: circleci/node@5.0.2
   eb: circleci/aws-elastic-beanstalk@2.0.1
   aws-cli: circleci/aws-cli@3.1.1
+  # Jobs: This section defines the actual job that will be run by CircleCI.
 jobs:
-  frontend:
-    working_directory: ~/app/udagram/udagram-frontend
-    executor: node/default
-    steps: 
-      - checkout:
-          path: ~/app
+  build:
+    docker:
+      # the base image can run most needed actions with orbs
+      - image: "cimg/node:14.15"
+    steps:
+      # install node and checkout code
       - node/install:
-          install-yarn: true
-          node-version: '16.13'
-      - run: node --version
-      - node/install-packages:
-          app-dir: ~/app/udagram/udagram-frontend
+          node-version: '14.15'
+      - checkout
+      # Use root level package.json to install dependencies in the frontend app
       - run:
-          name: Build Frontend
-          command: npm run build
-      - aws-cli/install
-      - aws-cli/setup:
-          aws-access-key-id: AWS_ACCESS_KEY
-          aws-region: AWS_REGION
-          profile-name: AWS_PROFILE
+          name: Install Front-End Dependencies
+          command: |
+            echo "NODE --version" 
+            echo $(node --version)
+            echo "NPM --version" 
+            echo $(npm --version)
+            npm run frontend:install
+      # "Install API Dependencies": This step installs dependencies required by the backend API. It is likely that the API has a separate package.json file containing its dependencies, which should be installed using the npm install command
+      - run:
+          name: Install API Dependencies
+          command: |
+            npm run api:install
+
+      - run:
+          name: Front-End Lint
+          command: |
+            npm run frontend:lint
+      # "Front-End Build": This step builds the frontend app. Again, the actual command to build the app will depend on how it is implemented
+      - run:
+          name: Front-End Build
+          command: |
+            npm run frontend:build
+      # "API Build": This step builds the backend API. The actual command to build the API will depend on how the API is implemented
+      - run:
+          name: API Build
+          command: |
+            npm run api:build
+  # "App Deploy": This step deploys the application. The actual command to deploy the app will depend on the deployment platform being used. It is likely that the deploy command will use the AWS Elastic Beanstalk CLI to deploy the app to the specified environment
+  deploy:
+    docker:
+      - image: "cimg/base:stable"
+      # more setup needed for aws, node, elastic beanstalk
+    steps:
+      - node/install:
+          node-version: '14.15'
+      - eb/setup
+      - aws-cli/setup
+      - checkout
       - run:
           name: Deploy Frontend
-          command: aws s3 cp --recursive  ./www s3://gbr-udagram-fullstack/
-  server:
-    working_directory: ~/app/udagram/udagram-api
-    executor: node/default
-    steps:
-      - checkout:
-          path: ~/app
-      - node/install-packages:
-          app-dir: ~/app/udagram/udagram-api
-      - aws-cli/install
-      - eb/setup
+          # Install, build, deploy in both apps
+          command: |
+            npm run frontend:deploy
       - run:
-          name: Deploy Server
-          command: npm run deploy
+          name: Deploy API
+          command: |
+            npm run api:deploy 
+# Workflows: This section defines the workflow that will run the "build" job when changes are pushed to the "master" branch
 workflows:
-  build_and_deploy:
+  udagram:
     jobs:
+      - build
       - hold:
           filters:
             branches:
               only:
                 - master
           type: approval
-      - frontend:
+          requires:
+            - build
+      - deploy:
           filters:
             branches:
               only:
                 - master
-      - server:
-          filters:
-            branches:
-              only:
-                - master
+          requires:
+            - hold
