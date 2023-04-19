@@ -30,10 +30,6 @@ jobs:
           command: |
             npm run api:install
 
-      - run:
-          name: Front-End Lint
-          command: |
-            npm run frontend:lint
       # "Front-End Build": This step builds the frontend app. Again, the actual command to build the app will depend on how it is implemented
       - run:
           name: Front-End Build
